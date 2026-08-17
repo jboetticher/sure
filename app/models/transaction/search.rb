@@ -133,12 +133,19 @@ class Transaction::Search
 
       uncategorized_condition = "categories.id IS NULL AND transactions.kind NOT IN (?)"
 
+      # Local fork change (2026-08-16): use BUDGET_EXCLUDED_KINDS instead of
+      # TRANSFER_KINDS here so the click-through view for "Uncategorized" on the
+      # Home donut matches what the donut is actually counting. Upstream mismatch:
+      # the donut excludes BUDGET_EXCLUDED_KINDS, but this filter excluded
+      # TRANSFER_KINDS — so mortgage payments (loan_payment) showed as expense in
+      # the donut but were HIDDEN from the click-through. Reported by Jeremy on
+      # 2026-08-16.
       # Build condition based on whether parent_category_ids is empty
       if parent_category_ids.empty?
         if include_uncategorized
           query = query.left_joins(:category).where(
             "categories.name IN (?) OR (#{uncategorized_condition})",
-            real_categories.presence || [], Transaction::TRANSFER_KINDS
+            real_categories.presence || [], Transaction::BUDGET_EXCLUDED_KINDS
           )
         else
           query = query.left_joins(:category).where(categories: { name: real_categories })
@@ -147,7 +154,7 @@ class Transaction::Search
         if include_uncategorized
           query = query.left_joins(:category).where(
             "categories.name IN (?) OR categories.parent_id IN (?) OR (#{uncategorized_condition})",
-            real_categories, parent_category_ids, Transaction::TRANSFER_KINDS
+            real_categories, parent_category_ids, Transaction::BUDGET_EXCLUDED_KINDS
           )
         else
           query = query.left_joins(:category).where(
