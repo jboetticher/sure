@@ -81,9 +81,12 @@ class Transaction < ApplicationRecord
   TRANSFER_KINDS = %w[funds_movement cc_payment loan_payment investment_contribution].freeze
 
   # Kinds excluded from budget/income-statement analytics.
-  # loan_payment and investment_contribution are intentionally NOT here —
-  # they represent real cash outflow from a budgeting perspective.
-  BUDGET_EXCLUDED_KINDS = %w[funds_movement one_time cc_payment].freeze
+  # Local fork change (2026-08-16): added `investment_contribution` so
+  # contributions to Jeremy's own investment accounts (Vanguard/Fidelity/etc.)
+  # do not count as expenses in the outflows donut or income statement — they're
+  # transfers between his own accounts. `loan_payment` (mortgage) intentionally
+  # stayed IN as real cash outflow.
+  BUDGET_EXCLUDED_KINDS = %w[funds_movement one_time cc_payment investment_contribution].freeze
 
   # All valid investment activity labels (for UI dropdown)
   ACTIVITY_LABELS = [
